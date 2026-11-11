@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security+ SY0-701 · Cap. 3 — Quiz de Malware</title>
+<style>
+  :root{--bg:#0b1020;--panel:#121a33;--panel2:#18224a;--text:#e8ecf8;--muted:#9aa6c8;--accent:#4fd1c5;--accent2:#f6ad55;--danger:#fc8181;--ok:#68d391;--line:#26315e}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;display:flex;justify-content:center;padding:24px 14px 60px}
+  .wrap{width:100%;max-width:760px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+  header a{color:var(--muted);text-decoration:none;font-size:.9rem}
+  header a:hover{color:var(--accent)}
+  .hud{display:flex;gap:.5rem;flex-wrap:wrap}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:.35rem .8rem;font-size:.9rem}
+  .chip b{color:var(--accent)}
+  .chip.streak b{color:var(--accent2)}
+  .progress{height:8px;background:var(--panel);border-radius:999px;overflow:hidden;margin-bottom:1.2rem}
+  .progress div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .3s}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.4rem}
+  .topic{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem}
+  .q{font-size:1.15rem;line-height:1.5;margin-bottom:1.2rem}
+  .opts{display:grid;gap:.6rem}
+  .opt{text-align:left;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:.85rem 1rem;font-size:1rem;cursor:pointer;display:flex;gap:.7rem;align-items:flex-start;transition:border-color .15s,background .15s}
+  .opt:hover:not(:disabled){border-color:var(--accent)}
+  .opt .k{font-weight:700;color:var(--muted);min-width:1.2rem}
+  .opt.correct{border-color:var(--ok);background:rgba(104,211,145,.12)}
+  .opt.wrong{border-color:var(--danger);background:rgba(252,129,129,.12)}
+  .opt:disabled{cursor:default}
+  .feedback{margin-top:1rem;padding:.9rem 1rem;border-radius:12px;display:none;line-height:1.5}
+  .feedback.show{display:block}
+  .feedback.ok{background:rgba(104,211,145,.1);border-left:4px solid var(--ok)}
+  .feedback.bad{background:rgba(252,129,129,.1);border-left:4px solid var(--danger)}
+  .feedback strong{display:block;margin-bottom:.25rem}
+  .actions{display:flex;justify-content:flex-end;margin-top:1rem;gap:.6rem;flex-wrap:wrap}
+  .btn{background:var(--accent);color:#0b1020;border:none;border-radius:12px;padding:.75rem 1.2rem;font-weight:700;font-size:1rem;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .hidden{display:none}
+  .result h1{font-size:2rem;margin-bottom:.4rem}
+  .score{font-size:3rem;font-weight:800;color:var(--accent);margin:.6rem 0}
+  .rank{font-size:1.2rem;color:var(--accent2);margin-bottom:1rem}
+  .review{margin-top:1.2rem;display:grid;gap:.8rem}
+  .review .item{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;font-size:.95rem;line-height:1.5}
+  .review .item .ans{color:var(--ok);margin-top:.3rem}
+  .topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem;margin-top:1rem}
+  .topics div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;font-size:.9rem}
+  .start p{color:var(--muted);line-height:1.6;margin:.6rem 0 1.2rem}
+  .hint{font-size:.85rem;color:var(--muted);margin-top:.8rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="index.html">⌂ Início</a>
+    <div class="hud">
+      <span class="chip">Pergunta <b id="qn">–</b></span>
+      <span class="chip">XP <b id="xp">0</b></span>
+      <span class="chip streak">🔥 <b id="streak">0</b></span>
+    </div>
+  </header>
+  <div class="progress"><div id="prog"></div></div>
+
+  <!-- Tela inicial -->
+  <div class="card start" id="start">
+    <div class="topic">Security+ SY0-701 · Cap. 3</div>
+    <h1 style="font-size:1.8rem">🎯 Quiz: Código Malicioso</h1>
+    <p>24 cenários sobre ransomware, trojan, worm, spyware, bloatware, vírus, keylogger, logic bomb e rootkit. Acerto vale <b>10 XP</b>, e cada acerto seguido soma <b>+2 XP</b> de bônus de sequência. Toda resposta vem com explicação.</p>
+    <div class="actions" style="justify-content:flex-start">
+      <button class="btn" id="go">Começar</button>
+      <a class="btn ghost" href="slides.html" style="text-decoration:none">Revisar slides</a>
+    </div>
+    <p class="hint">Atalhos: teclas 1–4 para responder, Enter para avançar.</p>
+  </div>
+
+  <!-- Pergunta -->
+  <div class="card hidden" id="quiz">
+    <div class="topic" id="topic"></div>
+    <div class="q" id="question"></div>
+    <div class="opts" id="opts"></div>
+    <div class="feedback" id="fb"></div>
+    <div class="actions"><button class="btn" id="next" disabled>Próxima →</button></div>
+  </div>
+
+  <!-- Resultado -->
+  <div class="card result hidden" id="result">
+    <h1>Resultado</h1>
+    <div class="score" id="final"></div>
+    <div class="rank" id="rank"></div>
+    <div class="topics" id="byTopic"></div>
+    <div class="actions" style="justify-content:flex-start">
+      <button class="btn" id="again">Jogar de novo</button>
+      <button class="btn ghost" id="retryWrong">Refazer só as erradas</button>
+    </div>
+    <div class="review" id="review"></div>
+  </div>
+</div>
+
+<script>
+const BANK=[
+ {t:"Ransomware",q:"Vários servidores de arquivos amanheceram com as extensões trocadas e um arquivo LEIA-ME.txt pedindo pagamento em Monero para liberar os dados. O que está acontecendo?",
+  o:["Ransomware (crypto malware)","Worm","Logic bomb","Bloatware"],a:0,
+  e:"Criptografia de arquivos com nota pedindo pagamento é a assinatura clássica do ransomware. O tipo que criptografa arquivos é chamado de crypto malware."},
+ {t:"Ransomware",q:"Qual controle mais reduz o impacto de um ataque de ransomware que criptografa os servidores?",
+  o:["Backups isolados em local que não seja afetado pela infecção","Pagar o resgate rapidamente","Desativar o firewall para isolar o tráfego","Instalar mais navegadores"],a:0,
+  e:"Um backup separado, que não seja criptografado junto, permite restaurar sem depender do atacante. Pagar não garante a devolução dos dados."},
+ {t:"Trojan",q:"Um colaborador baixou uma versão \"turbinada\" de um app de mensagens fora da loja oficial. Depois disso o celular passou a exibir anúncios e assinar serviços pagos sozinho. Qual o tipo mais provável?",
+  o:["Trojan","Worm","Rootkit","Bloatware"],a:0,
+  e:"O malware veio disfarçado de app legítimo e dependeu de o usuário instalar. É o padrão do Trojan, como no caso Triada, distribuído por mods de WhatsApp."},
+ {t:"Trojan",q:"Qual é a mitigação que costuma vir PRIMEIRO contra Trojans?",
+  o:["Conscientização do usuário para não baixar e executar software não confiável","Segmentação de rede","Secure Boot","Code review"],a:0,
+  e:"Como o Trojan depende de o usuário executá-lo, conscientização e controle de quais apps podem ser instalados vêm primeiro. Antimalware/EDR fica como última linha."},
+ {t:"Trojan",q:"O EDR alerta sobre uma ferramenta de suporte remoto instalada numa estação, mas a equipe de TI diz que não a usa. Por que esse tipo de caso é difícil?",
+  o:["Ferramentas legítimas de acesso remoto podem ser usadas como RAT","RATs só existem em Linux","EDRs não detectam acesso remoto","Toda ferramenta remota é bloatware"],a:0,
+  e:"Ferramentas legítimas de suporte podem ser abusadas como Remote Access Trojans (RAT). Isso gera falsos positivos, mas desligar a detecção deixa os RATs reais passarem."},
+ {t:"C&C",q:"O firewall registra uma estação interna abrindo conexão para um IP malicioso conhecido na TCP 6667. O que isso indica mais provavelmente?",
+  o:["Comunicação de comando e controle (C&C) via IRC","Atualização do Windows","Acesso a um servidor web legítimo","Tráfego de DNS"],a:0,
+  e:"A porta 6667 é a do IRC, um canal tradicional de C&C de botnets. Hoje é mais comum HTTPS para hosts que mudam com frequência, mas o IRC ainda aparece."},
+ {t:"C&C",q:"Como se chama um conjunto de máquinas infectadas que recebem ordens de um servidor central?",
+  o:["Botnet","VLAN","Honeynet","Cluster de alta disponibilidade"],a:0,
+  e:"Cada máquina controlada é um bot. O conjunto sob comando central é uma botnet."},
+ {t:"Worm",q:"Uma falha em um serviço exposto foi explorada e, em minutos, dezenas de servidores do mesmo segmento estavam comprometidos sem ninguém clicar em nada. Qual o tipo?",
+  o:["Worm","Trojan","Vírus de macro","Spyware"],a:0,
+  e:"Propagação automática pela rede, explorando serviços vulneráveis e sem interação do usuário, é o que define o worm."},
+ {t:"Worm",q:"Qual é a primeira camada de defesa recomendada contra worms?",
+  o:["Controles de rede: firewall, IPS e segmentação","Treinamento de phishing apenas","Code review","Desinstalar bloatware"],a:0,
+  e:"Se o host infectado não consegue falar com outros hosts vulneráveis, o worm não se espalha. Patching dos serviços expostos complementa essa defesa."},
+ {t:"Worm",q:"Qual destes é um IoC típico de worms como o Raspberry Robin?",
+  o:["Uso malicioso de cmd.exe e msiexec.exe e download de componentes remotos","Pop-up pedindo resgate","Programas do fabricante iniciando no boot","Código condicional em um script interno"],a:0,
+  e:"O Raspberry Robin chegava por pendrive com arquivo LNK e usava ferramentas nativas do Windows para persistir e baixar componentes, além de contatar C&C."},
+ {t:"Spyware",q:"Um software instalado junto com um utilitário gratuito registra os sites visitados e os programas instalados e envia tudo para um servidor externo. Como classificá-lo?",
+  o:["Spyware","Logic bomb","Ransomware","Rootkit"],a:0,
+  e:"O objetivo é coletar informações sobre o usuário ou o sistema e enviá-las para fora. Isso é spyware, mesmo que tenha entrado como Trojan."},
+ {t:"Spyware",q:"Qual é a principal diferença entre spyware e bloatware?",
+  o:["Spyware tem como objetivo coletar dados; bloatware é apenas software indesejado","Bloatware sempre criptografa arquivos","Spyware só existe em hardware","Não há diferença"],a:0,
+  e:"Os dois podem 'ligar para casa', mas a intenção principal do spyware é coletar informação. O bloatware é só software indesejado."},
+ {t:"Bloatware",q:"Notebooks novos chegaram com vários apps de parceiros do fabricante que iniciam com o sistema e deixam a máquina lenta. O que são e qual o impacto principal?",
+  o:["Bloatware, consumindo recursos","Vírus, corrompendo arquivos","Rootkit, escondendo processos","Worm, se propagando na rede"],a:0,
+  e:"Bloatware vem pré-instalado e normalmente não é malicioso. O impacto principal é ocupar disco, memória e CPU. A resposta é desinstalar ou usar uma imagem limpa."},
+ {t:"Vírus",q:"Qual é a diferença-chave entre um worm e um vírus?",
+  o:["A forma como se propagam","O sistema operacional que atacam","O tamanho do arquivo","A linguagem em que foram escritos"],a:0,
+  e:"O worm se espalha sozinho pela rede. O vírus se replica, mas depende de um mecanismo (pendrive, share, e-mail) e normalmente de ativação."},
+ {t:"Vírus",q:"No vocabulário de vírus, o que é o trigger?",
+  o:["A condição que define quando o vírus executa","O que o vírus faz ao executar","O servidor de C&C","A assinatura do antivírus"],a:0,
+  e:"O trigger é a condição de execução. O payload é o que o vírus faz ou entrega."},
+ {t:"Vírus",q:"Um ataque chegou por link de e-mail, explorou um plugin do navegador, rodou PowerShell e criou uma chave de Registro para se repetir no boot. Nada foi gravado em disco além disso. Que tipo é?",
+  o:["Vírus fileless","Vírus de boot sector","Bloatware","Logic bomb"],a:0,
+  e:"O fileless vive em memória e geralmente deixa como único rastro a persistência, por exemplo no Registro. Patching do navegador e detecção comportamental de PowerShell ajudam."},
+ {t:"Keylogger",q:"Senhas de vários usuários vazaram depois que eles usaram o mesmo computador compartilhado da recepção. O que reduz mais o impacto, mesmo se o keylogger continuar lá?",
+  o:["Autenticação multifator (MFA)","Senhas mais longas","Trocar o teclado","Desfragmentar o disco"],a:0,
+  e:"O MFA não derrota o keylogger, mas a senha capturada sozinha deixa de bastar para entrar. Senhas longas também seriam capturadas."},
+ {t:"Keylogger",q:"Um keylogger de software esteve ativo em uma estação. O que melhor descreve o que pode ter sido capturado?",
+  o:["Teclas digitadas e outras entradas do usuário","Somente arquivos abertos","Todo o disco","Apenas o tráfego de rede"],a:0,
+  e:"Além das teclas, keyloggers podem capturar mouse, toque na tela e até leitura de cartão."},
+ {t:"Logic bomb",q:"Um dev demitido avisa que deixou uma rotina que apaga a base de dados se o nome dele sumir da folha de pagamento. Qual o tipo e qual a prevenção?",
+  o:["Logic bomb, prevenida com code review","Ransomware, prevenido com backup","Worm, prevenido com IPS","Rootkit, prevenido com Secure Boot"],a:0,
+  e:"É código escondido em outro programa, acionado por condição. Tem poucos IoCs, então a prevenção principal é revisão de código."},
+ {t:"Rootkit",q:"Há sinais claros de acesso indevido a um servidor, mas o antimalware executado nele não encontra nada. Qual o melhor próximo passo?",
+  o:["Montar o disco em outro sistema confiável e analisar de lá","Rodar o mesmo scan de novo","Desativar o antivírus","Concluir que não há infecção"],a:0,
+  e:"Um rootkit engana o SO em que está rodando. Analisar a partir de outro sistema, imagem ou snapshot impede que ele se esconda."},
+ {t:"Rootkit",q:"Qual NÃO seria um IoC útil para um rootkit avançado?",
+  o:["Pop-up pedindo resgate","Domínios de C&C","Criação inesperada de serviços","Túneis reverse proxy e portas abertas"],a:0,
+  e:"Rootkits são feitos para ficar invisíveis. Pedido de resgate é sinal de ransomware."},
+ {t:"Remoção",q:"Qual a forma mais confiável de garantir que um malware foi completamente removido de uma estação?",
+  o:["Apagar o disco e reinstalar ou reimagear a partir de mídia confiável","Rodar três antivírus diferentes","Usar 'excluir' em vez de 'quarentena'","Reiniciar o computador"],a:0,
+  e:"Ferramentas de remoção podem deixar partes da infecção para trás. Wipe com reinstalação resolve a maioria dos casos. A exceção é malware residente em BIOS/UEFI."},
+ {t:"Análise",q:"Você enviou uma amostra a um site que escaneia com dezenas de antivírus e recebeu nomes diferentes para ela. Qual a explicação mais provável?",
+  o:["Cada fornecedor nomeia o malware de um jeito","A amostra mudou durante o teste","O site está mal configurado","Há dez malwares no arquivo"],a:0,
+  e:"Serviços como o VirusTotal mostram o veredito de cada engine, e cada fornecedor usa sua própria nomenclatura."},
+ {t:"Análise",q:"Um analista suspeita de um script Perl escrito por um funcionário. Qual o caminho mais direto para avaliá-lo?",
+  o:["Abrir em um editor de texto e revisar o código","Descompilar o script","Formatar a máquina","Aguardar o antivírus detectar"],a:0,
+  e:"Linguagens interpretadas como Python e Perl podem ser lidas diretamente, então não é preciso descompilar."}
+];
+
+const $=id=>document.getElementById(id);
+let set=[],idx=0,xp=0,streak=0,answered=false,results=[];
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function prepare(qs){
+  return shuffle(qs).map(q=>{
+    const order=shuffle(q.o.map((txt,k)=>({txt,ok:k===q.a})));
+    return {...q,opts:order,src:q};
+  });
+}
+
+function start(qs){
+  set=prepare(qs);idx=0;xp=0;streak=0;results=[];
+  $('start').classList.add('hidden');$('result').classList.add('hidden');$('quiz').classList.remove('hidden');
+  render();
+}
+
+function render(){
+  answered=false;const q=set[idx];
+  $('qn').textContent=(idx+1)+'/'+set.length;$('xp').textContent=xp;$('streak').textContent=streak;
+  $('prog').style.width=(idx/set.length*100)+'%';
+  $('topic').textContent=q.t;$('question').textContent=q.q;
+  $('fb').className='feedback';$('fb').innerHTML='';
+  $('next').disabled=true;$('next').textContent=idx===set.length-1?'Ver resultado':'Próxima →';
+  const box=$('opts');box.innerHTML='';
+  q.opts.forEach((o,k)=>{
+    const b=document.createElement('button');b.className='opt';
+    b.innerHTML='<span class="k">'+'ABCD'[k]+'</span><span></span>';
+    b.lastChild.textContent=o.txt;
+    b.onclick=()=>answer(k);box.appendChild(b);
+  });
+}
+
+function answer(k){
+  if(answered)return;answered=true;
+  const q=set[idx],btns=[...$('opts').children];
+  const ok=q.opts[k].ok;
+  btns.forEach((b,j)=>{b.disabled=true;if(q.opts[j].ok)b.classList.add('correct');else if(j===k)b.classList.add('wrong')});
+  if(ok){xp+=10+streak*2;streak++}else{streak=0}
+  results.push({q,ok});
+  $('xp').textContent=xp;$('streak').textContent=streak;
+  const fb=$('fb');fb.classList.add('show',ok?'ok':'bad');
+  const correct=q.opts.find(o=>o.ok).txt;
+  fb.innerHTML='<strong>'+(ok?'✅ Acertou!':'❌ Não foi dessa vez')+'</strong>'+(ok?'':'Resposta: <b></b><br>')+'<span></span>';
+  if(!ok)fb.querySelector('b').textContent=correct;
+  fb.querySelector('span').textContent=q.e;
+  $('next').disabled=false;$('next').focus();
+}
+
+function next(){
+  if(!answered)return;
+  if(idx<set.length-1){idx++;render()}else finish();
+}
+
+function finish(){
+  $('quiz').classList.add('hidden');$('result').classList.remove('hidden');
+  $('prog').style.width='100%';
+  const hits=results.filter(r=>r.ok).length,pct=Math.round(hits/results.length*100);
+  $('final').textContent=hits+'/'+results.length+' · '+xp+' XP';
+  $('rank').textContent=pct===100?'🏆 Malware Hunter: gabaritou!':pct>=80?'🛡️ Analista SOC: pronto para a prova':pct>=60?'🔍 Quase lá: revise os pontos errados':'📚 Volte aos slides e tente de novo';
+  const by={};results.forEach(r=>{by[r.q.t]=by[r.q.t]||[0,0];by[r.q.t][1]++;if(r.ok)by[r.q.t][0]++});
+  $('byTopic').innerHTML='';
+  Object.entries(by).forEach(([t,[h,n]])=>{const d=document.createElement('div');d.textContent=(h===n?'✅ ':'⚠️ ')+t+': '+h+'/'+n;$('byTopic').appendChild(d)});
+  const wrong=results.filter(r=>!r.ok);
+  $('retryWrong').classList.toggle('hidden',wrong.length===0);
+  const rv=$('review');rv.innerHTML='';
+  if(wrong.length){const h=document.createElement('h3');h.textContent='Revise as que errou:';h.style.marginTop='.5rem';rv.appendChild(h)}
+  wrong.forEach(r=>{
+    const d=document.createElement('div');d.className='item';
+    const p=document.createElement('div');p.textContent=r.q.q;
+    const a=document.createElement('div');a.className='ans';a.textContent='✔ '+r.q.opts.find(o=>o.ok).txt+'. '+r.q.e;
+    d.append(p,a);rv.appendChild(d);
+  });
+  try{const best=+localStorage.getItem('secplus-cap3-best')||0;if(xp>best)localStorage.setItem('secplus-cap3-best',xp)}catch(e){}
+}
+
+$('go').onclick=()=>start(BANK);
+$('again').onclick=()=>start(BANK);
+$('retryWrong').onclick=()=>start(results.filter(r=>!r.ok).map(r=>r.q.src));
+$('next').onclick=next;
+document.addEventListener('keydown',e=>{
+  if($('quiz').classList.contains('hidden'))return;
+  if(['1','2','3','4'].includes(e.key))answer(+e.key-1);
+  if(e.key==='Enter'&&answered){e.preventDefault();next()}
+});
+</script>
+</body>
+</html>
